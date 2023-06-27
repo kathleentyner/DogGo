@@ -4,6 +4,7 @@ using DogGo.Models.ViewModels;
 using DogGo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DogGo.Controllers
 {
@@ -27,13 +28,31 @@ namespace DogGo.Controllers
             _dogRepo = dogRepository;
             _neighborhoodRepo = neighborhoodRepository;
         }
+        // controller to get the signed in user id. We will use this a lot.
+        private int GetCurrentUserId()
+        {
+            string id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.Parse(id);
+        }
 
         // GET: Walkers
-        public ActionResult Index()
+        public ActionResult Index(int id)
         {
+            int userId = GetCurrentUserId();
             List<Walker> walkers = _walkerRepo.GetAllWalkers();
+            Owner owner = _ownerRepo.GetOwnerById(userId);
 
-            return View(walkers);
+            if (userId !=0)
+            { 
+                   
+                    List<Walker> neighborhoodWalkers = walkers.Where(walker => walker.NeighborhoodId == owner.NeighborhoodId).ToList();
+                    return View(neighborhoodWalkers);
+                }
+                else
+
+                    return View(walkers);
+         
+
         }
 
 

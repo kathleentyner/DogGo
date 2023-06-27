@@ -1,8 +1,10 @@
 ﻿using DogGo.Interfaces;
 using DogGo.Models;
 using DogGo.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DogGo.Controllers
 {
@@ -16,15 +18,25 @@ namespace DogGo.Controllers
             _dogRepo = dogRepository;
         }
 
-        // GET: Walkers
+        // controller to get the signed in user id. We will use this a lot.
+        private int GetCurrentUserId()
+        {
+            string id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.Parse(id);
+        }
+
+        // GET: Dogs
+        [Authorize]
         public ActionResult Index()
         {
-            List<Dog> dogs = _dogRepo.GetAllDogs();
+            int ownerId = GetCurrentUserId();
+
+            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(ownerId);
 
             return View(dogs);
         }
 
-        // GET: Walkers/Details/5
+        // GET: dogs/Details/5
         public ActionResult Details(int id)
         {
             Dog dog = _dogRepo.GetDogById(id);
@@ -36,66 +48,114 @@ namespace DogGo.Controllers
 
             return View(dog);
         }
-        // GET: WalkersController/Create
+        // GET: dogs/Create
+        [Authorize]
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: WalkersController/Create
+        // POST: dogs/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Dog dog)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                // update the dogs OwnerId to the current user's Id
+                dog.OwnerId = GetCurrentUserId();
+
+                _dogRepo.AddDog(dog);
+
+                return RedirectToAction("Index");
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return View(dog);
             }
         }
 
-        // GET: WalkersController/Edit/5
+        // GET: dogs/Edit/5
+
         public ActionResult Edit(int id)
         {
-            return View();
+            Dog dog = _dogRepo.GetDogById(id);
+            int userId = GetCurrentUserId(); //get the current user id name it userId
+
+            if (dog == null)
+            {
+                return NotFound();
+            }
+
+            else if (dog.OwnerId != userId) //if my owner id does not match the current userID return not found.
+            {
+                return NotFound();
+            }
+            else 
+            {
+                
+                return View(dog); 
+            }
+            
         }
 
-        // POST: WalkersController/Edit/5
+        // POST: dogs/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, Dog dog)
         {
             try
-            {
-                return RedirectToAction(nameof(Index));
+            {    //match dogs OwnerId to the current user's Id
+            
+                _dogRepo.UpdateDog(dog);
+
+                return RedirectToAction("Index");
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return View(dog);
             }
         }
 
-        // GET: WalkersController/Delete/5
+        // GET: dogs/Delete/5
+        [Authorize]
         public ActionResult Delete(int id)
         {
-            return View();
-        }
+            Dog dog = _dogRepo.GetDogById(id);
+            int userId = GetCurrentUserId(); //get the current user id, name it userId
 
-        // POST: WalkersController/Delete/5
+            if (dog == null)
+            {
+                return NotFound();
+            }
+
+            else if (dog.OwnerId != userId) //if my owner id does not match the current userID return not found.
+            {
+                return NotFound();
+            }
+            else
+            {
+
+                return View(dog);
+            }
+
+        
+    }
+
+        // POST: dogs/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id, Dog dog)
         {
             try
-            {
-                return RedirectToAction(nameof(Index));
+            { 
+                _dogRepo.DeleteDog(id);
+
+                return RedirectToAction("Index");
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return View(dog);
             }
         }
     }
