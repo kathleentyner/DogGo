@@ -4,6 +4,7 @@ using DogGo.Models.ViewModels;
 using DogGo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Security.Claims;
 
 namespace DogGo.Controllers
@@ -32,26 +33,33 @@ namespace DogGo.Controllers
         private int GetCurrentUserId()
         {
             string id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.Parse(id);
+            if (string.IsNullOrEmpty(id))
+            {
+                return 0;
+            }
+            else
+            { return int.Parse(id); }
         }
 
         // GET: Walkers
         public ActionResult Index(int id)
         {
-            int userId = GetCurrentUserId();
-            List<Walker> walkers = _walkerRepo.GetAllWalkers();
-            Owner owner = _ownerRepo.GetOwnerById(userId);
+            int userId = GetCurrentUserId();//current user id (owner)
+            Owner owner = _ownerRepo.GetOwnerById(userId); // get the owner by Id. will be used to match with walker through neighborhoodID
+            List<Walker> walkers = _walkerRepo.GetAllWalkers();//all walkers
 
-            if (userId !=0)
-            { 
-                   
-                    List<Walker> neighborhoodWalkers = walkers.Where(walker => walker.NeighborhoodId == owner.NeighborhoodId).ToList();
-                    return View(neighborhoodWalkers);
-                }
-                else
 
-                    return View(walkers);
-         
+            if (userId != 0)//if there is a user id. 0 would mean no id? Right?
+            {
+
+                List<Walker> neighborhoodWalkers = walkers.Where(walker => walker.NeighborhoodId == owner.NeighborhoodId).ToList();
+                return View(neighborhoodWalkers);//Make a list called neighborhoodWalkers. it equals the walkers where walker neighborhoodId equals the owner neighborhoodID. return the list that meet the parameters. 
+            }
+            
+            else
+            {
+                return View(walkers);
+            }
 
         }
 
@@ -77,12 +85,6 @@ namespace DogGo.Controllers
 
             return View(vm);
         }
-
-
-
-
-
-
 
 
         // GET: WalkersController/Create

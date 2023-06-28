@@ -29,9 +29,9 @@ namespace DogGo.Controllers
         [Authorize]
         public ActionResult Index()
         {
-            int ownerId = GetCurrentUserId();
+            int userId = GetCurrentUserId();
 
-            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(ownerId);
+            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(userId);
 
             return View(dogs);
         }
@@ -76,15 +76,15 @@ namespace DogGo.Controllers
         }
 
         // GET: dogs/Edit/5
-
+        //I want to edit the get because I only want to received the data if the user is authorized/signed in
         public ActionResult Edit(int id)
         {
-            Dog dog = _dogRepo.GetDogById(id);
-            int userId = GetCurrentUserId(); //get the current user id name it userId
+            Dog dog = _dogRepo.GetDogById(id);//I need the dog by id for the ownerId
+            int userId = GetCurrentUserId(); //get the current user id 
 
-            if (dog == null)
+            if (dog == null) //if there is no dog
             {
-                return NotFound();
+                return NotFound();//404 error
             }
 
             else if (dog.OwnerId != userId) //if my owner id does not match the current userID return not found.
@@ -94,7 +94,7 @@ namespace DogGo.Controllers
             else 
             {
                 
-                return View(dog); 
+                return View(dog); //else return my dog index
             }
             
         }
@@ -105,7 +105,7 @@ namespace DogGo.Controllers
         public ActionResult Edit(int id, Dog dog)
         {
             try
-            {    //match dogs OwnerId to the current user's Id
+            {    
             
                 _dogRepo.UpdateDog(dog);
 
@@ -118,11 +118,11 @@ namespace DogGo.Controllers
         }
 
         // GET: dogs/Delete/5
-        [Authorize]
-        public ActionResult Delete(int id)
+
+        public ActionResult Delete(int id) //again I am looking at the get to see if I can access the data. Similar if/else statement to edit. 
         {
             Dog dog = _dogRepo.GetDogById(id);
-            int userId = GetCurrentUserId(); //get the current user id, name it userId
+            int userId = GetCurrentUserId(); 
 
             if (dog == null)
             {

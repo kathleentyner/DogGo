@@ -16,7 +16,7 @@ namespace DogGo.Controllers
         private readonly IOwnerRepository _ownerRepo;
         private readonly IDogRepository _dogRepo;
         private readonly IWalkerRepository _walkerRepo;
-        private readonly INeighborhoodRepository _neighborhoodRepo; 
+        private readonly INeighborhoodRepository _neighborhoodRepo;
 
         // ASP.NET will give us an instance of our Walker Repository. This is called "Dependency Injection"
         public OwnerController(IOwnerRepository ownerRepository, IDogRepository dogRepository,
@@ -147,12 +147,11 @@ namespace DogGo.Controllers
         }
         //login methods
 
-        //get
         public ActionResult Login()
         {
             return View();
         }
-        //post
+
         [HttpPost]
         public async Task<ActionResult> Login(LoginViewModel viewModel)
         {
@@ -177,7 +176,7 @@ namespace DogGo.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity));
 
-            return RedirectToAction("Index", "Dogs");
+            return RedirectToAction("Index", "Owner");
         }
 
         public async Task<ActionResult> Logout()
@@ -185,6 +184,5 @@ namespace DogGo.Controllers
             await HttpContext.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
-
     }
 }
